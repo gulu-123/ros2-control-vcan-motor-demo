@@ -16,6 +16,9 @@ from vcan_test_utils import create_test_vcan
 CAN_FRAME_FORMAT = "=IB3x8s"
 CAN_ERR_FLAG = 0x20000000
 CAN_ERR_MASK = 0x1FFFFFFF
+# Linux UAPI defines CAN_RAW_ERR_FILTER as 2, but Python's socket module does
+# not expose that constant on every supported platform/build.
+CAN_RAW_ERR_FILTER = getattr(socket, "CAN_RAW_ERR_FILTER", 2)
 LEFT_NODE_ID = 17
 RIGHT_NODE_ID = 23
 LEFT_COMMAND_ID = 0x100 + LEFT_NODE_ID
@@ -69,7 +72,7 @@ class TestVirtualMotorNode(unittest.TestCase):
         self.addCleanup(can_socket.close)
         can_socket.setsockopt(
             socket.SOL_CAN_RAW,
-            socket.CAN_RAW_ERR_FILTER,
+            CAN_RAW_ERR_FILTER,
             struct.pack("=I", CAN_ERR_MASK),
         )
         can_socket.bind((can_interface,))
